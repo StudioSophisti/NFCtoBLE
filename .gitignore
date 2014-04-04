@@ -4,5 +4,19 @@
 # you should judge for yourself, the pros and cons are mentioned at:
 # http://guides.cocoapods.org/using/using-cocoapods.html#should-i-ignore-the-pods-directory-in-source-control?
 #
-# Pods/
+Pods/
 
+#xcode
+xcuserdata
+
+# IAR workbench
+Exe/
+List/
+Obj/
+*.dep
+*.dni
+*.wsdt
+*.sfr
+
+#Mac
+.DS_Store
