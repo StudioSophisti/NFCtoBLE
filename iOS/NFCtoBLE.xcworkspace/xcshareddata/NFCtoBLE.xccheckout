@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>35C18C02-76A8-436A-A35F-537F9550D00D</string>
+	<key>IDESourceControlProjectName</key>
+	<string>NFCtoBLE</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>B488C417-15F5-4E4B-BCE6-13A190A29F54</key>
+		<string>https://github.com/StudioSophisti/NFCtoBLE.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>iOS/NFCtoBLE.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>B488C417-15F5-4E4B-BCE6-13A190A29F54</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/StudioSophisti/NFCtoBLE.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>B488C417-15F5-4E4B-BCE6-13A190A29F54</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>B488C417-15F5-4E4B-BCE6-13A190A29F54</string>
+			<key>IDESourceControlWCCName</key>
+			<string>NFCtoBLE</string>
+		</dict>
+	</array>
+</dict>
+</plist>
