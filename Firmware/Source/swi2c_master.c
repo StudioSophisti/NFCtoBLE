@@ -87,8 +87,9 @@ void SWI2C_init(void)
   PxDIR &= ~(SCL | SDA);                    // Set output direction to input
   Px    &= ~(SCL | SDA);                    // SCL & SDA = 0, low when = outputs 
 
-  PxIN  &= ~(SCL | SDA);                    // Pull up or down
-  P2INP &= ~0x40;                           // Configure port 1 to pull up
+  // SCL and SDA floating
+  //PxIN  &= ~(SCL | SDA);                   
+  //P2INP &= ~(0x40);
 }
 
 /*---------------------------------------------------------------------------
@@ -108,20 +109,14 @@ void SWI2C_start(void)            // Set up start condition for I2C
 /*---------------------------------------------------------------------------
 * Description of function. Optional verbose description.
 *-------------------------------------------------------------------------*/
-void SWI2C_wait_ack(void)
+void SWI2C_recv_ack(void)
 {
   PxDIR &= ~SDA;                            // Set to input, SDA = 1 via pull-up    
   PxDIR &= ~SCL;                            // Set to input, SCL = 1 via pull-up
   _NOP();
   _NOP();
-
-  // TBD break if ack is not received within a certain time
-  while (PxIN & SDA == SDA)
-  {
-    _NOP();
-  }
-
-  PxDIR |= SCL;                            // Set to output, data low [SCL = 0]  
+  PxDIR |= SCL;                            // Set to output, clock low [SCL = 0] 
+  PxDIR |= SDA;                            // Set to output, clock low [SDA = 0]  
 }
 
 /*---------------------------------------------------------------------------
@@ -139,15 +134,15 @@ void SWI2C_txByte(unsigned char data)
       PxDIR &= ~SDA;                        // Set to input, SDA = 1 via pull-up
     else
       PxDIR |= SDA;                         // Set to output, data low [SDA = 0]
-    PxDIR &= ~SCL;                          // Set to output, data low [SCL = 0]
+    PxDIR &= ~SCL;                          // Set to input, SCL = 1 via pull-up
     temp = (temp << 1);                     // Shift bits 1 place to the left
     _NOP();                                 // Quick delay
-    PxDIR |= SCL;                           // Set to output, data low [SCL = 0]
+    PxDIR |= SCL;                           // Set to output, clock low [SCL = 0]
     _NOP();                                 // Quick delay
     bits = (bits - 1);                      // Loop until 8 bits are sent
   }
 
-  SWI2C_wait_ack();               // wait for acknowledge
+  SWI2C_recv_ack();               // recieve ack or nack
 }
 
 /*---------------------------------------------------------------------------
@@ -155,13 +150,28 @@ void SWI2C_txByte(unsigned char data)
 *-------------------------------------------------------------------------*/
 void SWI2C_ack(void)              // Set up for I2C acknowledge
 {
-  PxDIR |= SCL;                            // Set to output, data low [SCL = 0]
-  PxDIR |= SDA;                         // Set to output, data low [SDA = 0]
+  PxDIR |= SCL;                            // Set to output, clock low [SCL = 0]
+  PxDIR |= SDA;                            // Set to output, data low [SDA = 0]
 
   PxDIR &= ~SCL;                           // Set to input, SCL = 1 via pull-up
   _NOP();                                  // delay to meet I2C spec
   _NOP();                                  //   "        "        "
+  PxDIR |= SCL;                            // Set to output, clock low [SCL = 0]
+  PxDIR &= ~SDA;                           // Set to input, SDA = 1 via pull-up
+}
+
+/*---------------------------------------------------------------------------
+* Description of function. Optional verbose description.
+*-------------------------------------------------------------------------*/
+void SWI2C_nack(void)              // Set up for I2C not acknowledge
+{
   PxDIR |= SCL;                            // Set to output, data low [SCL = 0]
+  PxDIR &= ~SDA;                        // Set to input, SDA = 1 via pull-up
+
+  PxDIR &= ~SCL;                           // Set to input, SCL = 1 via pull-up
+  _NOP();                                  // delay to meet I2C spec
+  _NOP();                                  //   "        "        "
+  PxDIR |= SCL;                            // Set to output, clock low [SCL = 0]
   PxDIR &= ~SDA;                        // Set to input, SDA = 1 via pull-up
 }
 
@@ -190,6 +200,9 @@ unsigned char SWI2C_rxByte(bool ack)  // Read 8 bits of I2C data
   if (ack == TRUE)
   {
     SWI2C_ack();                   // Send acknowledge
+  } else {
+    SWI2C_nack();                   // Send not acknowledge
+    
   }
   return (temp);                           // Return 8-bit data byte
 }   
@@ -201,7 +214,7 @@ unsigned char SWI2C_rxByte(bool ack)  // Read 8 bits of I2C data
 *-------------------------------------------------------------------------*/
 void SWI2C_stop(void)             // Send I2C stop command
 {
-  PxDIR |= SDA;                             // Set to output, data low [SCA = 0]
+  PxDIR |= SDA;                             // Set to output, data low [SDA = 0]
   _NOP();                                   // Quick delay
   _NOP();                                   // Quick delay
   PxDIR &= ~SCL;                            // Set to input, SCL = 1 via pull-up
@@ -222,12 +235,11 @@ void SWI2C_readBlock(unsigned char SlaveAddress,
 
   SWI2C_start();                  // Send Start condition
   SWI2C_txByte((SlaveAddress << 1) | BIT0); // [ADDR] + R/W bit = 1
-  delayUs(10);
   for (unsigned int i = 0; i < numBytes; i++) {
     if (i == numBytes -1)
       *(temp) = SWI2C_rxByte(FALSE);     // Read 8 bits of data and send nack
     else 
-      *(temp) = SWI2C_rxByte(TRUE);     // Read 8 bits of data and send acks
+      *(temp) = SWI2C_rxByte(TRUE); // Read 8 bits of data and send nack
     temp++;                                 // Increment pointer to next element
   }
   SWI2C_stop();                   // Send Stop condition
@@ -244,7 +256,7 @@ void SWI2C_writeBlock(unsigned char SlaveAddress,
   temp = (unsigned char *)TxData;          // Initialize array pointer
   SWI2C_start();                 // Send Start condition
   SWI2C_txByte((SlaveAddress << 1) & ~BIT0); // [ADDR] + R/W bit = 0
-  delayUs(150);
+  delayUs(2000);
   for (unsigned int i = 0; i < numBytes; i++) {
     SWI2C_txByte(*(temp));       // Send data and ack
     temp++;                                // Increment pointer to next element

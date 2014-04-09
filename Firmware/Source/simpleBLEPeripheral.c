@@ -82,7 +82,7 @@
  */
 
 // How often to perform periodic event
-#define SBP_PERIODIC_EVT_PERIOD                   1000
+#define SBP_PERIODIC_EVT_PERIOD                   100
 
 // What is the advertising interval when device is discoverable (units of 625us, 160=100ms)
 #define DEFAULT_ADVERTISING_INTERVAL          160
@@ -195,6 +195,7 @@ static uint8 advertData[] =
 static uint8 attDeviceName[GAP_DEVICE_NAME_LEN] = "NFCReader";
 
 static bool nfcShieldConnected = FALSE;
+static uint8_t nfcData[16];
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -244,15 +245,6 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
 {
   simpleBLEPeripheral_TaskID = task_id;
 
-  NFCShield_begin();
-  uint32_t versiondata = getFirmwareVersion();
-  if (versiondata) {
-    // configure board to read RFID tags
-    if (SAMConfig()) {
-       nfcShieldConnected = TRUE;
-    }
-  }
-  
   // Setup the GAP
   VOID GAP_SetParamValue( TGAP_CONN_PAUSE_PERIPHERAL, DEFAULT_CONN_PAUSE_PERIPHERAL );
   
@@ -322,6 +314,7 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   VOID OADTarget_AddService();                    // OAD Profile
 #endif
 
+  
   // For keyfob board set GPIO pins into a power-optimized state
   // Note that there is still some leakage current from the buzzer,
   // accelerometer, LEDs, and buttons on the PCB.
@@ -338,7 +331,18 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   P0 = 0x03; // All pins on port 0 to low except for P0.0 and P0.1 (buttons)
   P1 = 0;   // All pins on port 1 to low
   P2 = 0;   // All pins on port 2 to low
-
+  
+  NFCShield_begin();
+  uint32_t versiondata = getFirmwareVersion();
+  versiondata = getFirmwareVersion();
+  if (versiondata) {
+    // configure board to read RFID tags
+    if (SAMConfig()) {
+       nfcShieldConnected = TRUE;
+       readPassiveTargetID(PN532_MIFARE_ISO14443A);
+    }
+  }
+  
   // Enable clock divide on halt
   // This reduces active current while radio is active and CC254x MCU
   // is halted
@@ -558,7 +562,24 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
  */
 static void performPeriodicTask( void )
 {
+  uint8_t success;
+  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+  uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
   
+  if (pollPassiveTargetID(uid, &uidLength)) {
+    uint8_t keya[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+    if (mifareclassic_AuthenticateBlock(uid, uidLength, 8, 0, keya)) 
+    {            
+      if (mifareclassic_ReadDataBlock(8, nfcData)) 
+      {        
+        readPassiveTargetID(PN532_MIFARE_ISO14443A);
+      }
+    } else 
+    {
+      readPassiveTargetID(PN532_MIFARE_ISO14443A);
+    }
+    
+  }
 }
 
 

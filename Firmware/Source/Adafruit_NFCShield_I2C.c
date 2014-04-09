@@ -52,7 +52,7 @@
 // local defines
 
 #define PIN_IRQ     cbPIO_PIN_0
-#define PIN_RST     cbPIO_PIN_3
+#define PIN_RST     cbPIO_PIN_0
 #define PIN_SDA     cbPIO_PIN_6 
 #define PIN_SCL     cbPIO_PIN_5 
 #define PORT_IRQ    cbPIO_PORT_2
@@ -67,7 +67,7 @@ uint8_t _uidLen;  // uid len
 uint8_t _key[6];  // Mifare Classic key
 uint8_t inListedTag; // Tg number of inlisted tag.
 byte pn532ack[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
-byte pn532response_firmwarevers[] = {0x00, 0xFF, 0x06, 0xFA, 0xD5, 0x03};
+byte pn532response_firmwarevers[] = {0x00, 0x00, 0xFF, 0x06, 0xFA, 0xD5, 0x03};
 
 //local functions
 
@@ -91,6 +91,7 @@ void NFCShield_begin() {
   digitalWrite(PIN_RST, PORT_RST, LOW);
   delay(400); // does it really need to be that long??
   digitalWrite(PIN_RST, PORT_RST, HIGH);
+  delay(100); // does it really need to be that long??
 
 }
 
@@ -125,7 +126,7 @@ uint32_t getFirmwareVersion(void) {
   wirereaddata(pn532_packetbuffer, 12);
   
   // check some basic stuff
-  if (TRUE != osal_memcmp((char *)pn532_packetbuffer, (char *)pn532response_firmwarevers, 6)) {
+  if (TRUE != osal_memcmp((char *)pn532_packetbuffer, (char *)pn532response_firmwarevers, 7)) {
     return 0;
   }
   
@@ -440,6 +441,8 @@ uint8_t mifareclassic_AuthenticateBlock (uint8_t * uid, uint8_t uidLen, uint32_t
   if (! sendCommandCheckAck(pn532_packetbuffer, 10+_uidLen, DEFAULT_TIMEOUT))
     return 0;
 
+  delay(5);
+  
   // Read the response packet
   wirereaddata(pn532_packetbuffer, 12);
   
@@ -481,6 +484,8 @@ uint8_t mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t * data)
     return 0;
   }
 
+  delay(5);
+  
   /* Read the response packet */
   wirereaddata(pn532_packetbuffer, 26);
 
@@ -666,6 +671,7 @@ void wirereaddata(uint8_t* buff, uint8_t n) {
   unsigned char *recvData = osal_mem_alloc(n * sizeof(uint8_t));
   SWI2C_readBlock(PN532_I2C_ADDRESS, n+2, recvData);
 
+  //skip the 0x01 byte 
   osal_memcpy(buff, recvData+1, n);
   
   osal_mem_free(recvData);
