@@ -5450,6 +5450,15 @@
       <name>$PROJ_DIR$\..\Source\cb_snv_ids.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\Source\global.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\nfcService.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\nfcService.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\Source\OSAL_SimpleBLEPeripheral.c</name>
     </file>
     <file>

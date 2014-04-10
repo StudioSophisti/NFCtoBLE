@@ -66,6 +66,9 @@
 
 #include "simpleBLEPeripheral.h"
 
+#include "global.h"
+#include "nfcService.h"
+
 #if defined FEATURE_OAD
   #include "oad.h"
   #include "oad_target.h"
@@ -184,10 +187,9 @@ static uint8 advertData[] =
 
   // service UUID, to notify central devices what services are included
   // in this peripheral
-  0x03,   // length of this data
-  GAP_ADTYPE_16BIT_MORE,      // some of the UUID's, but not all
-  LO_UINT16( SIMPLEPROFILE_SERV_UUID ),
-  HI_UINT16( SIMPLEPROFILE_SERV_UUID ),
+  0x11,   // length of this data
+  GAP_ADTYPE_128BIT_MORE,      // some of the UUID's, but not all
+  BASE_UUID_128(NFC_SERVICE_UUID)
 
 };
 
@@ -310,11 +312,11 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   GGS_AddService( GATT_ALL_SERVICES );            // GAP
   GATTServApp_AddService( GATT_ALL_SERVICES );    // GATT attributes
   DevInfo_AddService();                           // Device Information Service
+  NFCService_AddService();                              
 #if defined FEATURE_OAD
   VOID OADTarget_AddService();                    // OAD Profile
 #endif
 
-  
   // For keyfob board set GPIO pins into a power-optimized state
   // Note that there is still some leakage current from the buzzer,
   // accelerometer, LEDs, and buttons on the PCB.
@@ -348,6 +350,8 @@ void SimpleBLEPeripheral_Init( uint8 task_id )
   // is halted
   HCI_EXT_ClkDivOnHaltCmd( HCI_EXT_ENABLE_CLK_DIVIDE_ON_HALT );
 
+  HCI_EXT_OverlappedProcessingCmd(HCI_EXT_ENABLE_OVERLAPPED_PROCESSING);
+  
   // Setup a delayed profile startup
   osal_set_event( simpleBLEPeripheral_TaskID, SBP_START_DEVICE_EVT );
 
@@ -450,10 +454,6 @@ static void simpleBLEPeripheral_ProcessOSALMsg( osal_event_hdr_t *pMsg )
  */
 static void peripheralStateNotificationCB( gaprole_States_t newState )
 {
-#ifdef PLUS_BROADCASTER
-  static uint8 first_conn_flag = 0;
-#endif // PLUS_BROADCASTER
-  
   
   switch ( newState )
   {
@@ -480,11 +480,7 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
         DevInfo_SetParameter(DEVINFO_SYSTEM_ID, DEVINFO_SYSTEM_ID_LEN, systemId);
 
-        #if (defined HAL_LCD) && (HAL_LCD == TRUE)
-          // Display device address
-          HalLcdWriteString( bdAddr2Str( ownAddress ),  HAL_LCD_LINE_2 );
-          HalLcdWriteString( "Initialized",  HAL_LCD_LINE_3 );
-        #endif // (defined HAL_LCD) && (HAL_LCD == TRUE)
+   
       }
       break;
 
@@ -495,18 +491,6 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
     case GAPROLE_CONNECTED:
       {        
-           
-#ifdef PLUS_BROADCASTER
-        // Only turn advertising on for this state when we first connect
-        // otherwise, when we go from connected_advertising back to this state
-        // we will be turning advertising back on.
-        if ( first_conn_flag == 0 ) 
-        {
-          uint8 adv_enabled_status = 1;
-          GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8), &adv_enabled_status); // Turn on Advertising
-          first_conn_flag = 1;
-        }
-#endif // PLUS_BROADCASTER
       }
       break;
 
@@ -521,11 +505,7 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
 
     case GAPROLE_WAITING_AFTER_TIMEOUT:
       {
-          
-#ifdef PLUS_BROADCASTER
-        // Reset flag for next connection.
-        first_conn_flag = 0;
-#endif //#ifdef (PLUS_BROADCASTER)
+ 
       }
       break;
 
@@ -562,13 +542,17 @@ static void peripheralStateNotificationCB( gaprole_States_t newState )
  */
 static void performPeriodicTask( void )
 {
-  uint8_t success;
-  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+  if (nfcShieldConnected == FALSE) return;
+  
   uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
   
-  if (pollPassiveTargetID(uid, &uidLength)) {
+  if (pollPassiveTargetID(nfcData, &uidLength)) {
     uint8_t keya[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-    if (mifareclassic_AuthenticateBlock(uid, uidLength, 8, 0, keya)) 
+    
+    NFCSendNotification(nfcData, uidLength);
+    
+    readPassiveTargetID(PN532_MIFARE_ISO14443A);
+    /*if (mifareclassic_AuthenticateBlock(uid, uidLength, 8, 0, keya)) 
     {            
       if (mifareclassic_ReadDataBlock(8, nfcData)) 
       {        
@@ -577,7 +561,7 @@ static void performPeriodicTask( void )
     } else 
     {
       readPassiveTargetID(PN532_MIFARE_ISO14443A);
-    }
+    }*/
     
   }
 }
