@@ -14,6 +14,6 @@
 
 - (void)peripheralDidConnect:(NBPeripheral*)peripheral;
 - (void)peripheralDidDisconnect:(NBPeripheral*)peripheral;
-- (void)peripheral:(NBPeripheral*)peripheral didReceiveData:(NSData*)data;
+- (void)peripheral:(NBPeripheral*)peripheral didReceiveCardUUID:(NSString*)cardUUID;
 
 @end

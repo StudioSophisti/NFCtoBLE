@@ -7,7 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "NBBLEControllerDelegate.h"
 
-@interface NBViewController : UIViewController
+@interface NBViewController : UIViewController <NBBLEControllerDelegate>
+@property (weak, nonatomic) IBOutlet UILabel *connectedLabel;
+@property (weak, nonatomic) IBOutlet UILabel *uuidLabel;
 
 @end

@@ -19,15 +19,17 @@ typedef enum {
 
 @class NBPeripheral;
 
-@interface NBBLEController : NSObject <NBBLEControllerDelegate, CBCentralManagerDelegate, UIActionSheetDelegate>
+@interface NBBLEController : NSObject <CBCentralManagerDelegate, UIActionSheetDelegate>
 {
     ConnectionState connectionState;
-    NBPeripheral connectedPeripheral;
+    NBPeripheral *connectedPeripheral;
     NSTimer *scanTimer;
     UIActionSheet *deviceSheet;
     
     //UIActionSheet *deviceSheet;
 }
+
+- (void)scanPeripherals;
 
 @property (nonatomic, assign) id<NBBLEControllerDelegate> delegate;
 @property (nonatomic, readonly) CBCentralManager *manager;

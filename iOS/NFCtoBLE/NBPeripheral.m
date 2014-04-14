@@ -25,6 +25,9 @@
     buffer = NULL;
 }
 
+- (void)stopPolling {
+    
+}
 
 - (void)discoverServices {
     // discover our hid and battery service
@@ -66,13 +69,24 @@
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     
-    // Don't need to write anything?..
+    // Not needed right now.
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     
-    NSLog(@"Yeeh.. we did update something! :D");
+    if(dataCharacteristic == characteristic)
+    {
+        NSString *raw = [NSString stringWithFormat:@"0x%@", characteristic.value];
+        raw = [raw stringByReplacingOccurrencesOfString:@"<" withString:@""];
+        raw = [raw stringByReplacingOccurrencesOfString:@">" withString:@""];
+        
+        if (_delegate && [_delegate respondsToSelector:@selector(peripheral:didReceiveCardUUID:)]) {
+            [_delegate peripheral:self didReceiveCardUUID:raw];
+        }
+    }
 }
+
+
 
 
 @end

@@ -17,6 +17,9 @@
     CBCharacteristic *dataCharacteristic;
 }
 
+- (void)discoverServices;
+- (void)stopPolling;
+
 @property(nonatomic, retain) CBPeripheral *peripheral;
 @property(nonatomic, assign) id<NBBLEControllerDelegate> delegate;
 

@@ -79,7 +79,7 @@ static NBBLEController *__instance = nil;
     NSLog(@"Connecting periphiral %@", peripheral.name);
     
     connectedPeripheral = [[NBPeripheral alloc] init];
-    connectedPeripheral.delegate = self;
+    connectedPeripheral.delegate = _delegate;
     connectedPeripheral.peripheral = peripheral;
     connectedPeripheral.peripheral.delegate = connectedPeripheral;
     
@@ -114,6 +114,8 @@ static NBBLEController *__instance = nil;
 
 - (void)scanTimeout {
     
+    NSLog(@"Scane timeout...");
+    
     scanTimer = nil;
     
     if ([_devices count] == 1) {
@@ -144,26 +146,6 @@ static NBBLEController *__instance = nil;
     }
 }
 
-
-#pragma mark - NBBLEControllerDelegate
-
-- (void)peripheralDidConnect:(NBPeripheral*)peripheral
-{
-    if(_delegate && _delegate != self)
-        [_delegate peripheralDidConnect:peripheral];
-}
-
-- (void)peripheralDidDisconnect:(NBPeripheral*)peripheral
-{
-    if(_delegate && _delegate != self)
-        [_delegate peripheralDidDisconnect:peripheral];
-}
-
-- (void)peripheral:(NBPeripheral*)peripheral didReceiveData:(NSData*)data
-{
-    if(_delegate && _delegate != self)
-        [_delegate peripheral:peripheral didReceiveData:data];
-}
 
 #pragma mark - CBCentralManagerDelegate
 
@@ -246,4 +228,20 @@ static NBBLEController *__instance = nil;
     
     [self scanPeripherals];
 }
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet willDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == [_devices count]) {
+        
+        [self scanPeripherals];
+        
+    } else if (buttonIndex < [_devices count]) {
+        
+        [self connectPeripheral:[_devices objectAtIndex:buttonIndex]];
+    }
+    
+    deviceSheet = nil;
+}
+
 @end

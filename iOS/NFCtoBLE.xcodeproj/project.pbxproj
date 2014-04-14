@@ -23,7 +23,6 @@
 		45D038CF18EEB37500FFD0F7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 45D038CD18EEB37500FFD0F7 /* InfoPlist.strings */; };
 		45D038D118EEB37500FFD0F7 /* NFCtoBLETests.m in Sources */ = {isa = PBXBuildFile; fileRef = 45D038D018EEB37500FFD0F7 /* NFCtoBLETests.m */; };
 		45D038DD18EEB5E300FFD0F7 /* NBBLEController.m in Sources */ = {isa = PBXBuildFile; fileRef = 45D038DC18EEB5E300FFD0F7 /* NBBLEController.m */; };
-		61E12B9B15E347F0BF821ABD /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7714A344B0F74EBFBD36128F /* libPods.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,7 +62,6 @@
 		45D038D018EEB37500FFD0F7 /* NFCtoBLETests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NFCtoBLETests.m; sourceTree = "<group>"; };
 		45D038DB18EEB5E300FFD0F7 /* NBBLEController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NBBLEController.h; sourceTree = "<group>"; };
 		45D038DC18EEB5E300FFD0F7 /* NBBLEController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NBBLEController.m; sourceTree = "<group>"; };
-		7714A344B0F74EBFBD36128F /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +72,6 @@
 				45D038A818EEB37400FFD0F7 /* CoreGraphics.framework in Frameworks */,
 				45D038AA18EEB37400FFD0F7 /* UIKit.framework in Frameworks */,
 				45D038A618EEB37400FFD0F7 /* Foundation.framework in Frameworks */,
-				61E12B9B15E347F0BF821ABD /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,7 +115,6 @@
 				45D038A718EEB37400FFD0F7 /* CoreGraphics.framework */,
 				45D038A918EEB37400FFD0F7 /* UIKit.framework */,
 				45D038C418EEB37400FFD0F7 /* XCTest.framework */,
-				7714A344B0F74EBFBD36128F /* libPods.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
